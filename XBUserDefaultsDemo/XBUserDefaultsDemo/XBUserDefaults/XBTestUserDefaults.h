@@ -13,6 +13,7 @@
 @property (nonatomic ,copy) NSString *name;
 @property (nonatomic ,assign) NSInteger age;
 @property (nonatomic ,assign) int intAge;
+@property (nonatomic ,strong) NSDate *date;
 
 +(instancetype)sharedInstance;
 

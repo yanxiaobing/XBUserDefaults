@@ -10,7 +10,7 @@
 
 @implementation XBTestUserDefaults
 
-@dynamic name,age,intAge;
+@dynamic name,age,intAge,date;
 
 static XBTestUserDefaults* _instance = nil;
 
@@ -20,7 +20,6 @@ static XBTestUserDefaults* _instance = nil;
     dispatch_once(&onceToken, ^{
         _instance = [[self alloc] init] ;
     }) ;
-    
     return _instance ;
 }
 

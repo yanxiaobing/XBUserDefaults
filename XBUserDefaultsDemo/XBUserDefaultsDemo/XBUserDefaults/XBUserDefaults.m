@@ -7,7 +7,7 @@
 //
 
 #import "XBUserDefaults.h"
-#import <objc/runtime.h>
+#import <objc/message.h>
 
 @interface XBUserDefaults()
 
@@ -39,6 +39,8 @@ static NSString *const xb_property_suffix = @"_xb_userDefaults_key";
 
 @implementation XBUserDefaults
 
+@dynamic isXBingoTransfered;
+
 - (instancetype)init
 {
     self = [super init];
@@ -46,6 +48,85 @@ static NSString *const xb_property_suffix = @"_xb_userDefaults_key";
         _userDefaults = [NSUserDefaults standardUserDefaults];
     }
     return self;
+}
+
+-(void)transferToXBWithNewOldKeysDic:(NSDictionary *)newOldKeysDic{
+    if (!newOldKeysDic) {
+        return;
+    }
+    if (newOldKeysDic.allKeys.count == 0) {
+        return;
+    }
+    if (self.isXBingoTransfered) {
+        return;
+    }
+    //字典去重,获取到映射表(不去重则可能错误的设置成两个同样的newKey-oldKey,导致数据转换错误)
+    NSDictionary *mappingDic = [self sortKeyValueWithDictionary:[newOldKeysDic copy]];
+    
+    [mappingDic.allKeys enumerateObjectsUsingBlock:^(NSString*  _Nonnull proprtyName, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSString *newKey = [proprtyName stringByAppendingString:xb_property_suffix];
+        NSString *oldKey = mappingDic[proprtyName];
+        //如果新旧key相同则不需要转移
+        if (![newKey isEqualToString:oldKey]) {
+            // 根据属性名称构建方法
+            SEL sel = [self createSetterMethodWithProprtyName:proprtyName];
+            //根据newKey获取属性类型
+            const char *constChar = [proprtyName UTF8String];
+            objc_property_t property = class_getProperty(self.class, constChar);
+            const char * property_attr = property_getAttributes(property);
+            char type = property_attr[1];
+            //根据类型取出旧值
+            if (type == xb_id) {
+                NSString *typeStr = [NSString stringWithUTF8String:property_attr];
+                if ([typeStr containsString:@"NSURL"]) {
+                    NSURL *url = [self.userDefaults URLForKey:oldKey];
+                    ((void(*)(id,SEL,NSURL *))objc_msgSend)((id)self, sel, url);
+                }else{
+                    id obj = [self.userDefaults objectForKey:oldKey];
+                    ((void(*)(id,SEL,id))objc_msgSend)((id)self, sel, obj);
+                }
+            }else if (type == xb_bool){
+                BOOL boolV = [self.userDefaults boolForKey:oldKey];
+                ((void(*)(id,SEL,BOOL))objc_msgSend)((id)self, sel, boolV);
+            }else if(type == xb_double){
+                double value = [self.userDefaults doubleForKey:oldKey];
+                ((void(*)(id,SEL,double))objc_msgSend)((id)self, sel, value);
+            }else if(type == xb_float){
+                float value = [self.userDefaults floatForKey:oldKey];
+                ((void(*)(id,SEL,float))objc_msgSend)((id)self, sel, value);
+            }else if (isIntegerType(type)){
+                NSInteger value = [self.userDefaults integerForKey:oldKey];
+                ((void(*)(id,SEL,NSInteger))objc_msgSend)((id)self, sel, value);
+            }else{
+                // TODO 抛出异常
+                NSException *exception  = [NSException exceptionWithName:@"XBUserDefaults exception" reason:@"transferToXBWithNewOldKeysDic: method exception(property type isn`t supported)" userInfo:nil];
+                [exception raise];
+            }
+            // 移除旧值
+            [self.userDefaults removeObjectForKey:oldKey];
+        }
+    }];
+    self.isXBingoTransfered = YES;
+}
+
+-(NSDictionary *)sortKeyValueWithDictionary:(NSDictionary *)orDic{
+    NSArray *keyList = orDic.allKeys;
+    NSSet *set = [NSSet setWithArray:keyList];
+    NSArray *sortList = [set allObjects];
+    NSMutableDictionary *needDic = [NSMutableDictionary new];
+    [sortList enumerateObjectsUsingBlock:^(NSString*  _Nonnull key, NSUInteger idx, BOOL * _Nonnull stop) {
+        [needDic setObject:orDic[key] forKey:key];
+    }];
+    return [needDic copy];
+}
+
+-(SEL)createSetterMethodWithProprtyName:(NSString *)proprtyName{
+    NSMutableString *key = [proprtyName mutableCopy];
+    NSString *uppercaseString = [[key substringToIndex:1] uppercaseString];
+    [key replaceCharactersInRange:NSMakeRange(0, 1) withString:uppercaseString];
+    NSString *methodName = [@"set" stringByAppendingString:key];
+    methodName = [methodName stringByAppendingString:@":"];
+    return NSSelectorFromString(methodName);
 }
 
 +(BOOL)resolveInstanceMethod:(SEL)sel{

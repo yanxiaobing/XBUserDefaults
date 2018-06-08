@@ -17,13 +17,32 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    [XBTestUserDefaults sharedInstance].name = @"我不是小兵";
-    [XBTestUserDefaults sharedInstance].age = 100;
-    [XBTestUserDefaults sharedInstance].intAge = 500;
+    [[NSUserDefaults standardUserDefaults] setObject:@"我不是小bingbing" forKey:@"test_name"];
+    [[NSUserDefaults standardUserDefaults] setInteger:1000 forKey:@"test_age"];
+    [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"test_date"];
+    
+    NSDictionary *dic = @{@"name":@"test_name",
+                          @"age":@"test_age",
+                          @"date":@"test_date",
+                          };
+    [[XBTestUserDefaults sharedInstance] transferToXBWithNewOldKeysDic:dic];
     
     NSLog(@"name:%@",[XBTestUserDefaults sharedInstance].name);
     NSLog(@"age:%ld",(long)[XBTestUserDefaults sharedInstance].age);
-    NSLog(@"age:%ld",(long)[XBTestUserDefaults sharedInstance].intAge);
+    NSLog(@"date:%@",[XBTestUserDefaults sharedInstance].date);
+    
+    
+    NSDate *date = [NSDate date];
+    for (int i = 0; i<10000; i++) {
+        [[NSUserDefaults standardUserDefaults] setObject:@"我不是小冰冰" forKey:@"test_name"];
+    }
+    NSLog(@"直接使用：%f",[NSDate date].timeIntervalSince1970 - date.timeIntervalSince1970);
+    
+    NSDate *date2 = [NSDate date];
+    for (int i = 0; i<10000; i++) {
+    [XBTestUserDefaults sharedInstance].name = @"我不是小冰冰";
+    }
+    NSLog(@"间接使用：%f",[NSDate date].timeIntervalSince1970 - date2.timeIntervalSince1970);
 }
 
 

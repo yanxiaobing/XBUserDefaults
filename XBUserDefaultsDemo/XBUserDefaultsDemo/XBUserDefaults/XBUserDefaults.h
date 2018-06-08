@@ -39,5 +39,18 @@
 
 @interface XBUserDefaults : NSObject
 
+/**
+ 用于替换旧项目中其他方式使用[NSUserDefaults standardUserDefaults]
+
+ @param newOldKeysDic 通过配置改映射表将旧方式保存的值用新方式接收
+ key-value 均为NSString类型，格式如下：
+  @{@"proprety_name1":@"old_key1",@"proprety_name2":@"old_key2"}
+ */
+-(void)transferToXBWithNewOldKeysDic:(NSDictionary *)newOldKeysDic;
+
+/**
+ 用来标记已经执行过数据转移了
+ */
+@property (nonatomic ,assign) BOOL isXBingoTransfered;
 
 @end
