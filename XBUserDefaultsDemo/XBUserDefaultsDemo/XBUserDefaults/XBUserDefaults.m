@@ -138,14 +138,14 @@ static const char* getPropertyNameFromSetSelector(SEL _cmd){
 
 #pragma mark -- 类型动态方法
 // integer
-static void autoIntegerTypeSetter(id self,SEL _cmd ,long long value){
+static void autoIntegerTypeSetter(id self,SEL _cmd ,long value){
     XBUserDefaults *typedSelf = (XBUserDefaults *)self;
     NSString *key = getKeyWithSelector(_cmd, YES);
     [typedSelf.userDefaults setInteger:value forKey:key];
     [typedSelf.userDefaults synchronize];
 }
 
-static long long autoIntegerTypeGetter(id self,SEL _cmd){
+static long autoIntegerTypeGetter(id self,SEL _cmd){
     XBUserDefaults *typedSelf = (XBUserDefaults *)self;
     NSString *key = getKeyWithSelector(_cmd, NO);
     return [typedSelf.userDefaults integerForKey:key];
