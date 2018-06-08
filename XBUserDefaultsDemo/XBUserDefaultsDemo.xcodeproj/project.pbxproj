@@ -67,6 +67,8 @@
 				EDE3F3D820CA23F50029F111 /* XBUserDefaults */,
 				EDE3F3BF20CA228F0029F111 /* AppDelegate.h */,
 				EDE3F3C020CA228F0029F111 /* AppDelegate.m */,
+				EDE3F3D920CA7E7D0029F111 /* XBTestUserDefaults.h */,
+				EDE3F3DA20CA7E7D0029F111 /* XBTestUserDefaults.m */,
 				EDE3F3C220CA228F0029F111 /* ViewController.h */,
 				EDE3F3C320CA228F0029F111 /* ViewController.m */,
 				EDE3F3C520CA228F0029F111 /* Main.storyboard */,
@@ -83,8 +85,6 @@
 			children = (
 				EDE3F3D520CA23EA0029F111 /* XBUserDefaults.h */,
 				EDE3F3D620CA23EA0029F111 /* XBUserDefaults.m */,
-				EDE3F3D920CA7E7D0029F111 /* XBTestUserDefaults.h */,
-				EDE3F3DA20CA7E7D0029F111 /* XBTestUserDefaults.m */,
 			);
 			path = XBUserDefaults;
 			sourceTree = "<group>";
