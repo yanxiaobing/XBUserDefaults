@@ -1,18 +1,17 @@
 # XBUserDefaults
 
--  ```XBUserDefaults```是利用Objective-C RunTime 机制对```NSUserDefaults```进行一层封装。
+-  `XBUserDefaults`是利用`Objective-C RunTime `机制对```NSUserDefaults```进行一层封装。
 -  大大增加了易用性和可维护性。
--  目前仅支持```[NSUserDefaults standardUserDefaults]```做容器。
 
->  几乎每个iOS项目中都不可避免的会使用到```NSUserDefaults```，作为iOS开发常用的五种数据存储方式之一（NSUserDefaults、plist、NSKeyedArchiver、FMDB、CoreData），我觉得```NSUserDefaults```算是最易用的了。
+>  几乎每个iOS项目中都不可避免的会使用到`NSUserDefaults`，作为iOS开发常用的五种数据存储方式之一（`NSUserDefaults`、`plist`、`NSKeyedArchiver`、`FMDB`、`CoreData`），我觉得```NSUserDefaults```算是最易用的了。
 
 >  但是项目中用的多了之后key管理起来就很麻烦了，而且用每次用到都要写一大坨代码。相信用过的朋友都有同感吧！
 
 ## 实现思路
 - 数据存取
-  将```@property```属性设置为```@dynamic```，然后利用消息机制在``` +(BOOL)resolveInstanceMethod:(SEL)sel```方法中根据@property类型动态添加相关（setter/getter）方法。相关内容则依然存储在```NSUserDefaults```中。
+  将`@property`属性设置为`@dynamic`，然后利用消息机制在``` +(BOOL)resolveInstanceMethod:(SEL)sel```方法中根据@property类型动态添加相关（setter/getter）方法。相关内容则依然存储在`NSUserDefaults`中。
 - 数据迁移
-  为了更好的方便项目中已经大量使用```NSUserDefaults```的用户能相对轻松的迁移数据，内置了数据迁移方法``` transferToXBWithNewOldKeysDic:(NSDictionary *)newOldKeysDic```，通过newOldKeysDic映射表将旧数据迁移到新方式中去。newKey为属性名，通过newKey可以获取到属性类型，在根据类型和oldKey获取到旧数据并赋值给新方式。
+  为了更好的方便项目中已经大量使用`NSUserDefaults`的用户能相对轻松的迁移数据，内置了数据迁移方法``` transferToXBWithNewOldKeysDic:(NSDictionary *)newOldKeysDic```，通过newOldKeysDic映射表将旧数据迁移到新方式中去。newKey为属性名，通过newKey可以获取到属性类型，在根据类型和oldKey获取到旧数据并赋值给新方式。
 
 ## 安装方式
 目前可以通过两种方式将XBUserDefaults集成到您的项目中。
@@ -49,7 +48,7 @@ $ pod install
 
 ## Usage
 
-创建一个```XBUserDefaults```子类，并将子类单例化。eg：
+创建一个`XBUserDefaults`子类，并将子类单例化。eg：
 
 XBTestUserDefaults.h
 ```objective-c
@@ -96,7 +95,7 @@ NSDictionary *dic = @{@"name":@"test_name",
 [[XBTestUserDefaults sharedInstance] transferToXBWithNewOldKeysDic:dic]; 
 ```
 
-之后有新的字段需要记录只需要在.h文件中添加对应类型的@property并在.m文件中@dynamic propertyName，然后像普通属性那样赋值、取值使用了。如：
+之后有新的字段需要记录只需要在.h文件中添加对应类型的`@property`并在.m文件中`@dynamic propertyName`，然后像普通属性那样赋值、取值使用了。如：
 ```objective-c 
 [XBTestUserDefaults sharedInstance].name = @"我不是小冰冰";
 NSLog(@"name:%@",[XBTestUserDefaults sharedInstance].name);
@@ -104,7 +103,7 @@ NSLog(@"name:%@",[XBTestUserDefaults sharedInstance].name);
 
 ## Notices
 - 最好用子类单例的形式。
-- 添加新的属性的时候一定要记得在.m文件中```@dynamic propertyName```
+- 添加新的属性的时候一定要记得在.m文件中`@dynamic propertyName`
 - 数据迁移一定要注意映射表的构建，key-value 对应propertyName-oldKey。
 - 数据迁移最好放在app升级的逻辑中做。
 - 数据迁移不需要自己写逻辑控制只执行一次。作者已经帮你做好了。
