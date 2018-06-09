@@ -20,17 +20,7 @@
 - [下载 XBUserDefaults](https://github.com/yanxiaobing/XBUserDefaults/archive/master.zip) 然后将[XBUserDefaults]()文件夹拖入您的工程即可。
 - [CocoaPods](http://cocoapods.org)集成
 
-### 通过 CocoaPods 安装
-
-[CocoaPods](http://cocoapods.org) is a dependency manager for Objective-C, which automates and simplifies the process of using 3rd-party libraries like XBUserDefaults in your projects. You can install it with the following command:
-
-```bash
-$ gem install cocoapods
-```
-
-#### Podfile
-
-To integrate XBUserDefaults into your Xcode project using CocoaPods, specify it in your `Podfile`:
+在你的 `Podfile`文件中添加 `XBUserDefaults `:
 
 ```ruby
 source 'https://github.com/CocoaPods/Specs.git'
@@ -41,7 +31,7 @@ pod 'XBUserDefaults'
 end
 ```
 
-Then, run the following command:
+然后执行:
 
 ```bash
 $ pod install
@@ -52,7 +42,7 @@ $ pod install
 
 创建一个`XBUserDefaults`子类，并将子类单例化。eg：
 
-XBTestUserDefaults.h
+`XBTestUserDefaults.h`
 ```objective-c
 #import "XBUserDefaults.h"
 
@@ -64,7 +54,7 @@ XBTestUserDefaults.h
 +(instancetype)sharedInstance; // 单例方法
 @end
 ```
-XBTestUserDefaults.m
+`XBTestUserDefaults.m`
 ```objective-c
 
 #import "XBTestUserDefaults.h"
@@ -87,19 +77,25 @@ return _instance ;
 如果需要数据迁移只需在旧数据使用前调用
 ```objective-c
 // @"name"、@"age"对应新方式的属性名。
-// @"test_name"、@"test_age"对应旧方式保存值得key。
+// @"test_name"、@"test_age"对应旧方式保存值的`key`。
 // 旧数据类型需要与新方式的属性类型匹配。
+
 NSDictionary *dic = @{@"name":@"test_name",
                     @"age":@"test_age"
                     };
+// 确认映射表正确配置后，就可以将之前那一坨坨代码删掉了。然后在使用`NSUserDefaults`之前调用迁移方法。
 [[XBTestUserDefaults sharedInstance] transferToXBWithNewOldKeysDic:dic]; 
-```
 
-添加新字段只需要在`@interface`中添加对应类型的`@property`并在`@implementation`文件中`@dynamic propertyName`，然后像普通`@property`使用了。如：
-```objective-c 
+// 使用`NSUserDefaults`
+// [[NSUserDefaults standardUserDefaults] setObject:@"我不是小冰冰" forKey:@"test_name"];
+// NSLog(@"test_name:%@",[[NSUserDefaults standardUserDefaults] objectForKey:@"test_name"]);
+
+// 使用`XBUserDefaults`
 [XBTestUserDefaults sharedInstance].name = @"我不是小冰冰";
 NSLog(@"name:%@",[XBTestUserDefaults sharedInstance].name);
 ```
+
+添加新字段只需要在`@interface`中添加对应类型的`@property`并在`@implementation`文件中`@dynamic propertyName`，然后像普通`@property`使用了。
 
 ## Notices
 - 最好用子类单例的形式。
