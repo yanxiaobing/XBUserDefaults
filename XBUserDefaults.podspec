@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
     s.name         = 'XBUserDefaults'
-    s.version      = '1.0.1'
+    s.version      = '1.0.2'
     s.summary      = 'Easy to use NSUserDefaults'
     s.homepage     = 'https://github.com/yanxiaobing/XBUserDefaults'
     s.license      = 'MIT'
