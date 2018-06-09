@@ -2,6 +2,7 @@
 
 -  `XBUserDefaults`是利用`Objective-C RunTime `机制对```NSUserDefaults```进行一层封装。
 -  大大增加了易用性和可维护性。
+-  性能基本毫无影响（100000次`NSString`读写，耗时仅多0.4s±0.05s）。
 
 >  几乎每个iOS项目中都会使用到`NSUserDefaults`，作为iOS开发常用的五种数据存储方式之一（`NSUserDefaults`、`plist`、`NSKeyedArchiver`、`FMDB`、`CoreData`），```NSUserDefaults```算是最易用的了。
 

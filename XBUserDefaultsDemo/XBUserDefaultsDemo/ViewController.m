@@ -33,14 +33,16 @@
     
     
     NSDate *date = [NSDate date];
-    for (int i = 0; i<10000; i++) {
-        [[NSUserDefaults standardUserDefaults] setObject:@"我不是小冰冰" forKey:@"test_name"];
+    for (int i = 0; i<100000; i++) {
+        [[NSUserDefaults standardUserDefaults] setObject:[NSString stringWithFormat:@"我不是小冰冰%d",i] forKey:@"test_name"];
+//        NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey:@"test_name"];
     }
     NSLog(@"直接使用：%f",[NSDate date].timeIntervalSince1970 - date.timeIntervalSince1970);
     
     NSDate *date2 = [NSDate date];
-    for (int i = 0; i<10000; i++) {
-    [XBTestUserDefaults sharedInstance].name = @"我不是小冰冰";
+    for (int i = 0; i<100000; i++) {
+    [XBTestUserDefaults sharedInstance].name = [NSString stringWithFormat:@"我不是小冰冰%d",i];
+//        NSString *str = [XBTestUserDefaults sharedInstance].name;
     }
     NSLog(@"间接使用：%f",[NSDate date].timeIntervalSince1970 - date2.timeIntervalSince1970);
 }

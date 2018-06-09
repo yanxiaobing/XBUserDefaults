@@ -53,4 +53,11 @@
  */
 @property (nonatomic ,assign) BOOL isXBingoTransfered;
 
+
+/**
+ -(BOOL)synchronize;
+ 苹果官方文档表示将废弃该方法。这里就不实现了。
+ 具体参照NSUserDefaults -(BOOL)synchronize方法文档。
+ */
+
 @end
