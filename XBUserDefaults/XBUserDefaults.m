@@ -223,7 +223,6 @@ static void autoIntegerTypeSetter(id self,SEL _cmd ,long value){
     XBUserDefaults *typedSelf = (XBUserDefaults *)self;
     NSString *key = getKeyWithSelector(_cmd, YES);
     [typedSelf.userDefaults setInteger:value forKey:key];
-    [typedSelf.userDefaults synchronize];
 }
 
 static long autoIntegerTypeGetter(id self,SEL _cmd){
@@ -237,7 +236,6 @@ static void autoFloatTypeSetter(id self,SEL _cmd ,float value){
     XBUserDefaults *typedSelf = (XBUserDefaults *)self;
     NSString *key = getKeyWithSelector(_cmd, YES);
     [typedSelf.userDefaults setFloat:value forKey:key];
-    [typedSelf.userDefaults synchronize];
 }
 
 static float autoFloatTypeGetter(id self,SEL _cmd){
@@ -251,7 +249,6 @@ static void autoDoubleTypeSetter(id self,SEL _cmd ,double value){
     XBUserDefaults *typedSelf = (XBUserDefaults *)self;
     NSString *key = getKeyWithSelector(_cmd, YES);
     [typedSelf.userDefaults setDouble:value forKey:key];
-    [typedSelf.userDefaults synchronize];
 }
 
 static double autoDoubleTypeGetter(id self,SEL _cmd){
@@ -283,7 +280,6 @@ static void autoIdTypeSetter(id self,SEL _cmd ,id value){
         [typedSelf.userDefaults setURL:(NSURL *)value forKey:key];
     }else{
         [typedSelf.userDefaults setObject:value forKey:key];
-        [typedSelf.userDefaults synchronize];
     }
 }
 
