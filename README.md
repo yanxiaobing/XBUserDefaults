@@ -3,14 +3,16 @@
 -  `XBUserDefaults`是利用`Objective-C RunTime `机制对```NSUserDefaults```进行一层封装。
 -  大大增加了易用性和可维护性。
 
->  几乎每个iOS项目中都不可避免的会使用到`NSUserDefaults`，作为iOS开发常用的五种数据存储方式之一（`NSUserDefaults`、`plist`、`NSKeyedArchiver`、`FMDB`、`CoreData`），我觉得```NSUserDefaults```算是最易用的了。
+>  几乎每个iOS项目中都会使用到`NSUserDefaults`，作为iOS开发常用的五种数据存储方式之一（`NSUserDefaults`、`plist`、`NSKeyedArchiver`、`FMDB`、`CoreData`），```NSUserDefaults```算是最易用的了。
 
 >  但是项目中用的多了之后key管理起来就很麻烦了，而且用每次用到都要写一大坨代码。相信用过的朋友都有同感吧！
 
 ## 实现思路
 - 数据存取
+
   将`@property`属性设置为`@dynamic`，然后利用消息机制在``` +(BOOL)resolveInstanceMethod:(SEL)sel```方法中根据@property类型动态添加相关（setter/getter）方法。相关内容则依然存储在`NSUserDefaults`中。
 - 数据迁移
+
   为了更好的方便项目中已经大量使用`NSUserDefaults`的用户能相对轻松的迁移数据，内置了数据迁移方法``` transferToXBWithNewOldKeysDic:(NSDictionary *)newOldKeysDic```，通过newOldKeysDic映射表将旧数据迁移到新方式中去。newKey为属性名，通过newKey可以获取到属性类型，在根据类型和oldKey获取到旧数据并赋值给新方式。
 
 ## 安装方式
@@ -55,10 +57,9 @@ XBTestUserDefaults.h
 #import "XBUserDefaults.h"
 
 @interface XBTestUserDefaults : XBUserDefaults
-@property (nonatomic ,copy) NSString *name; //名字
-@property (nonatomic ,assign) NSInteger age;//年龄
-@property (nonatomic ,assign) int intAge;   //测试int类型
-@property (nonatomic ,strong) NSDate *date; //日期
+
+@property (nonatomic ,copy) NSString *name; // 名字
+@property (nonatomic ,assign) NSInteger age;// 年龄
 
 +(instancetype)sharedInstance; // 单例方法
 @end
@@ -70,7 +71,7 @@ XBTestUserDefaults.m
 
 @implementation XBTestUserDefaults
 
-@dynamic name,age,intAge,date;  ////一定要记得将属性名设置@dynamic，不然不会动态绑定setter/getter方法，保存不了值
+@dynamic name,age;  //一定要记得将属性名设置@dynamic，不然不会动态绑定setter/getter方法，保存不了值
 
 static XBTestUserDefaults* _instance = nil;
 +(instancetype) sharedInstance
@@ -85,17 +86,16 @@ return _instance ;
 ```
 如果需要数据迁移只需在旧数据使用前调用
 ```objective-c
-// @"name"、@"age"、@"date"对应新方式的属性名。
-// @"test_name"、@"test_age"、@"test_date"对应旧方式保存值得key。
+// @"name"、@"age"对应新方式的属性名。
+// @"test_name"、@"test_age"对应旧方式保存值得key。
 // 旧数据类型需要与新方式的属性类型匹配。
 NSDictionary *dic = @{@"name":@"test_name",
-                    @"age":@"test_age",
-                    @"date":@"test_date",
+                    @"age":@"test_age"
                     };
 [[XBTestUserDefaults sharedInstance] transferToXBWithNewOldKeysDic:dic]; 
 ```
 
-之后有新的字段需要记录只需要在.h文件中添加对应类型的`@property`并在.m文件中`@dynamic propertyName`，然后像普通属性那样赋值、取值使用了。如：
+添加新字段只需要在`@interface`中添加对应类型的`@property`并在`@implementation`文件中`@dynamic propertyName`，然后像普通`@property`使用了。如：
 ```objective-c 
 [XBTestUserDefaults sharedInstance].name = @"我不是小冰冰";
 NSLog(@"name:%@",[XBTestUserDefaults sharedInstance].name);
