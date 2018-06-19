@@ -79,10 +79,10 @@ static NSString *const xb_property_suffix = @"_xb_userDefaults_key";
                 class_addMethod(self, sel, (IMP)autoBoolTypeSetter, types);
                 break;
             case xb_int:
+            case xb_long:
                 class_addMethod(self, sel, (IMP)autoIntegerTypeSetter, types);
                 break;
             case xb_short:
-            case xb_long:
             case xb_longlong:
             case xb_unsigned_long:
             case xb_unsigned_longlong:
@@ -118,10 +118,10 @@ static NSString *const xb_property_suffix = @"_xb_userDefaults_key";
                  class_addMethod(self, sel, (IMP)autoBoolTypeGetter, types);
                 break;
             case xb_int:
+            case xb_long:
                 class_addMethod(self, sel, (IMP)autoIntegerTypeGetter, types);
                 break;
             case xb_short:
-            case xb_long:
             case xb_unsigned_long:
             case xb_longlong:
             case xb_unsigned_longlong:
@@ -168,13 +168,13 @@ static const char* getPropertyNameFromSetSelector(SEL _cmd){
 
 #pragma mark -- 类型动态方法
 // integer
-static void autoIntegerTypeSetter(id self,SEL _cmd ,int value){
+static void autoIntegerTypeSetter(id self,SEL _cmd ,long value){
     XBUserDefaults *typedSelf = (XBUserDefaults *)self;
     NSString *key = getKeyWithSelector(_cmd, YES);
     [typedSelf.userDefaults setInteger:value forKey:key];
 }
 
-static int autoIntegerTypeGetter(id self,SEL _cmd){
+static long autoIntegerTypeGetter(id self,SEL _cmd){
     XBUserDefaults *typedSelf = (XBUserDefaults *)self;
     NSString *key = getKeyWithSelector(_cmd, NO);
     return [typedSelf.userDefaults integerForKey:key];
@@ -326,13 +326,12 @@ static id autoIdTypeGetter(id self,SEL _cmd){
                 }
                     break;
                 case xb_int:
+                case xb_long:
                 {
                     NSInteger value = [self.userDefaults integerForKey:oldKey];
                     ((void(*)(id,SEL,NSInteger))objc_msgSend)((id)self, sel, value);
                 }
                     break;
-                case xb_short:
-                case xb_long:
                 case xb_unsigned_long:
                 case xb_longlong:
                 case xb_unsigned_longlong:
