@@ -30,7 +30,7 @@
     NSLog(@"name:%@",[XBTestUserDefaults sharedInstance].name);
     NSLog(@"age:%ld",(long)[XBTestUserDefaults sharedInstance].age);
     NSLog(@"date:%@",[XBTestUserDefaults sharedInstance].date);
-    
+    [XBTestUserDefaults sharedInstance].testBool = YES;
     
     NSDate *date = [NSDate date];
     for (int i = 0; i<100000; i++) {

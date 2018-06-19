@@ -9,33 +9,32 @@
 #import "XBUserDefaults.h"
 #import <objc/message.h>
 
+enum XBTypeEncodings {
+
+    xb_short                = 's',
+    xb_unsigned_short       = 'S',
+    xb_int                  = 'i',
+    xb_unsigned_int         = 'I',
+    xb_long                 = 'l',
+    xb_unsigned_long        = 'L',
+    xb_longlong             = 'q',
+    xb_unsigned_longlong    = 'Q',
+    
+    xb_char                 = 'c',
+    xb_unsigned_char        = 'C',
+    xb_bool                 = 'B',
+    xb_float                = 'f',
+    xb_double               = 'd',
+    xb_id                   = '@'
+};
+
+static NSString *const xb_property_suffix = @"_xb_userDefaults_key";
+
 @interface XBUserDefaults()
 
 @property (nonatomic ,strong) NSUserDefaults *userDefaults;
 
 @end
-
-static const char xb_id = '@';
-
-static const char xb_bool = 'B';
-
-static const char xb_double = 'd';
-
-static const char xb_float = 'f';
-
-static const char xb_int = 'i';
-static const char xb_unsigned_int = 'I';
-
-static const char xb_short = 's';
-static const char xb_unsigned_short = 'S';
-
-static const char xb_long = 'l';
-static const char xb_unsigned_long = 'L';
-
-static const char xb_longlong = 'q';
-static const char xb_unsigned_longlong = 'Q';
-
-static NSString *const xb_property_suffix = @"_xb_userDefaults_key";
 
 @implementation XBUserDefaults
 
@@ -50,85 +49,6 @@ static NSString *const xb_property_suffix = @"_xb_userDefaults_key";
     return self;
 }
 
--(void)transferToXBWithNewOldKeysDic:(NSDictionary *)newOldKeysDic{
-    if (!newOldKeysDic) {
-        return;
-    }
-    if (newOldKeysDic.allKeys.count == 0) {
-        return;
-    }
-    if (self.isXBingoTransfered) {
-        return;
-    }
-    //字典去重,获取到映射表(不去重则可能错误的设置成两个同样的newKey-oldKey,导致数据转换错误)
-    NSDictionary *mappingDic = [self sortKeyValueWithDictionary:[newOldKeysDic copy]];
-    
-    [mappingDic.allKeys enumerateObjectsUsingBlock:^(NSString*  _Nonnull proprtyName, NSUInteger idx, BOOL * _Nonnull stop) {
-        NSString *newKey = [proprtyName stringByAppendingString:xb_property_suffix];
-        NSString *oldKey = mappingDic[proprtyName];
-        //如果新旧key相同则不需要转移
-        if (![newKey isEqualToString:oldKey]) {
-            // 根据属性名称构建方法
-            SEL sel = [self createSetterMethodWithProprtyName:proprtyName];
-            //根据newKey获取属性类型
-            const char *constChar = [proprtyName UTF8String];
-            objc_property_t property = class_getProperty(self.class, constChar);
-            const char * property_attr = property_getAttributes(property);
-            char type = property_attr[1];
-            //根据类型取出旧值
-            if (type == xb_id) {
-                NSString *typeStr = [NSString stringWithUTF8String:property_attr];
-                if ([typeStr containsString:@"NSURL"]) {
-                    NSURL *url = [self.userDefaults URLForKey:oldKey];
-                    ((void(*)(id,SEL,NSURL *))objc_msgSend)((id)self, sel, url);
-                }else{
-                    id obj = [self.userDefaults objectForKey:oldKey];
-                    ((void(*)(id,SEL,id))objc_msgSend)((id)self, sel, obj);
-                }
-            }else if (type == xb_bool){
-                BOOL boolV = [self.userDefaults boolForKey:oldKey];
-                ((void(*)(id,SEL,BOOL))objc_msgSend)((id)self, sel, boolV);
-            }else if(type == xb_double){
-                double value = [self.userDefaults doubleForKey:oldKey];
-                ((void(*)(id,SEL,double))objc_msgSend)((id)self, sel, value);
-            }else if(type == xb_float){
-                float value = [self.userDefaults floatForKey:oldKey];
-                ((void(*)(id,SEL,float))objc_msgSend)((id)self, sel, value);
-            }else if (isIntegerType(type)){
-                NSInteger value = [self.userDefaults integerForKey:oldKey];
-                ((void(*)(id,SEL,NSInteger))objc_msgSend)((id)self, sel, value);
-            }else{
-                // TODO 抛出异常
-                NSException *exception  = [NSException exceptionWithName:@"XBUserDefaults exception" reason:@"transferToXBWithNewOldKeysDic: method exception(property type isn`t supported)" userInfo:nil];
-                [exception raise];
-            }
-            // 移除旧值
-            [self.userDefaults removeObjectForKey:oldKey];
-        }
-    }];
-    self.isXBingoTransfered = YES;
-}
-
--(NSDictionary *)sortKeyValueWithDictionary:(NSDictionary *)orDic{
-    NSArray *keyList = orDic.allKeys;
-    NSSet *set = [NSSet setWithArray:keyList];
-    NSArray *sortList = [set allObjects];
-    NSMutableDictionary *needDic = [NSMutableDictionary new];
-    [sortList enumerateObjectsUsingBlock:^(NSString*  _Nonnull key, NSUInteger idx, BOOL * _Nonnull stop) {
-        [needDic setObject:orDic[key] forKey:key];
-    }];
-    return [needDic copy];
-}
-
--(SEL)createSetterMethodWithProprtyName:(NSString *)proprtyName{
-    NSMutableString *key = [proprtyName mutableCopy];
-    NSString *uppercaseString = [[key substringToIndex:1] uppercaseString];
-    [key replaceCharactersInRange:NSMakeRange(0, 1) withString:uppercaseString];
-    NSString *methodName = [@"set" stringByAppendingString:key];
-    methodName = [methodName stringByAppendingString:@":"];
-    return NSSelectorFromString(methodName);
-}
-
 +(BOOL)resolveInstanceMethod:(SEL)sel{
     
     NSString *selName = NSStringFromSelector(sel);
@@ -141,40 +61,77 @@ static NSString *const xb_property_suffix = @"_xb_userDefaults_key";
         const char * property_attr = property_getAttributes(property);
         char type = property_attr[1];
         
-        if (type == xb_id) {
-            class_addMethod(self, sel, (IMP)autoIdTypeSetter, "v@:@");
-        }else if (type == xb_bool) {
-            class_addMethod(self, sel, (IMP)autoBoolTypeSetter, "v@:B");
-        }else if(type == xb_double){
-            class_addMethod(self, sel, (IMP)autoDoubleTypeSetter, "v@:d");
-        }else if(type == xb_float){
-            class_addMethod(self, sel, (IMP)autoFloatTypeSetter, "v@:f");
-        }else if (isIntegerType(type)){
-            class_addMethod(self, sel, (IMP)autoIntegerTypeSetter, "v@:q");
-        }else{
-            // TODO 抛出异常
-            NSException *exception  = [NSException exceptionWithName:@"XBUserDefaults exception" reason:@"setter method exception(property type isn`t supported)" userInfo:nil];
-            [exception raise];
+        char types[5];
+        snprintf(types, 5, "v@:%c", type);
+        switch (type) {
+            case xb_id:
+                class_addMethod(self, sel, (IMP)autoIdTypeSetter, types);
+                break;
+            case xb_float:
+                class_addMethod(self, sel, (IMP)autoFloatTypeSetter, types);
+                break;
+            case xb_double:
+                class_addMethod(self, sel, (IMP)autoDoubleTypeSetter, types);
+                break;
+            case xb_bool:
+            case xb_char:
+                class_addMethod(self, sel, (IMP)autoBoolTypeSetter, types);
+                break;
+            case xb_int:
+                class_addMethod(self, sel, (IMP)autoIntegerTypeSetter, types);
+                break;
+            case xb_short:
+            case xb_long:
+            case xb_longlong:
+            case xb_unsigned_long:
+            case xb_unsigned_longlong:
+            case xb_unsigned_char:
+            case xb_unsigned_short:
+            case xb_unsigned_int:
+                class_addMethod(self, sel, (IMP)autoLongLongTypeSetter, types);
+                break;
+            default:
+                [[NSException exceptionWithName:@"XBUserDefaults exception" reason:@"setter method exception(property type isn`t supported)" userInfo:nil] raise];
+                break;
         }
     }else{
         // 获取属性
         objc_property_t property = class_getProperty(self, [selName UTF8String]);
         const char * property_attr = property_getAttributes(property);
         char type = property_attr[1];
-        if (type == xb_id) {
-            class_addMethod(self, sel, (IMP)autoIdTypeGetter, "@@:");
-        }else if (type == xb_bool) {
-            class_addMethod(self, sel, (IMP)autoBoolTypeGetter, "B@:");
-        }else if(type == xb_double){
-            class_addMethod(self, sel, (IMP)autoDoubleTypeGetter, "d@:");
-        }else if(type == xb_float){
-            class_addMethod(self, sel, (IMP)autoFloatTypeGetter, "f@:");
-        }else if (isIntegerType(type)){
-            class_addMethod(self, sel, (IMP)autoIntegerTypeGetter, "q@:");
-        }else{
-            // TODO 抛出异常
-            NSException *exception  = [NSException exceptionWithName:@"XBUserDefaults exception" reason:@"getter method exception (property type isn`t supported)" userInfo:nil];
-            [exception raise];
+        
+        char types[5];
+        snprintf(types, 4, "%c@:", type);
+        switch (type) {
+            case xb_id:
+                class_addMethod(self, sel, (IMP)autoIdTypeGetter, types);
+                break;
+            case xb_float:
+               class_addMethod(self, sel, (IMP)autoFloatTypeGetter, types);
+                break;
+            case xb_double:
+               class_addMethod(self, sel, (IMP)autoDoubleTypeGetter, types);
+                break;
+            case xb_bool:
+            case xb_char:
+                 class_addMethod(self, sel, (IMP)autoBoolTypeGetter, types);
+                break;
+            case xb_int:
+                class_addMethod(self, sel, (IMP)autoIntegerTypeGetter, types);
+                break;
+            case xb_short:
+            case xb_long:
+            case xb_unsigned_long:
+            case xb_longlong:
+            case xb_unsigned_longlong:
+            case xb_unsigned_char:
+            case xb_unsigned_short:
+            case xb_unsigned_int:
+                class_addMethod(self, sel, (IMP)autoLongLongTypeGetter, types);
+                break;
+            default:
+                [[NSException exceptionWithName:@"XBUserDefaults exception" reason:@"getter method exception (property type isn`t supported)" userInfo:nil] raise];
+                break;
         }
     }
     return YES;
@@ -191,15 +148,6 @@ static NSString *getKeyWithSelector(SEL _cmd , BOOL isSet){
         str = [propertyGet stringByAppendingString:xb_property_suffix];
     }
     return str;
-}
-
-static BOOL isIntegerType(char type){
-    BOOL isInt = type == xb_int || type == xb_unsigned_int;
-    BOOL isShort = type == xb_short || type == xb_unsigned_short;
-    BOOL isLong = type == xb_long || type == xb_unsigned_long;
-    BOOL isLongLong = type == xb_longlong || type == xb_unsigned_longlong;
-    BOOL isInteger = isInt || isShort || isLong || isLongLong;
-    return isInteger;
 }
 
 static const char* getPropertyNameFromSetSelector(SEL _cmd){
@@ -219,16 +167,31 @@ static const char* getPropertyNameFromSetSelector(SEL _cmd){
 
 #pragma mark -- 类型动态方法
 // integer
-static void autoIntegerTypeSetter(id self,SEL _cmd ,long value){
+static void autoIntegerTypeSetter(id self,SEL _cmd ,int value){
     XBUserDefaults *typedSelf = (XBUserDefaults *)self;
     NSString *key = getKeyWithSelector(_cmd, YES);
     [typedSelf.userDefaults setInteger:value forKey:key];
 }
 
-static long autoIntegerTypeGetter(id self,SEL _cmd){
+static int autoIntegerTypeGetter(id self,SEL _cmd){
     XBUserDefaults *typedSelf = (XBUserDefaults *)self;
     NSString *key = getKeyWithSelector(_cmd, NO);
     return [typedSelf.userDefaults integerForKey:key];
+}
+
+// integer
+static void autoLongLongTypeSetter(id self,SEL _cmd ,long long value){
+    XBUserDefaults *typedSelf = (XBUserDefaults *)self;
+    NSString *key = getKeyWithSelector(_cmd, YES);
+    NSNumber *number = [NSNumber numberWithLongLong:value];
+    [typedSelf.userDefaults setObject:number forKey:key];
+}
+
+static long long autoLongLongTypeGetter(id self,SEL _cmd){
+    XBUserDefaults *typedSelf = (XBUserDefaults *)self;
+    NSString *key = getKeyWithSelector(_cmd, NO);
+    NSNumber *number = [typedSelf.userDefaults objectForKey:key];
+    return [number longLongValue];
 }
 
 // float
@@ -297,6 +260,118 @@ static id autoIdTypeGetter(id self,SEL _cmd){
     }else{
         return [typedSelf.userDefaults objectForKey:key];
     }
+}
+
+
+
+#pragma mark -- transferToXBUserDefaults
+
+-(void)transferToXBWithNewOldKeysDic:(NSDictionary *)newOldKeysDic{
+    if (!newOldKeysDic) {
+        return;
+    }
+    if (newOldKeysDic.allKeys.count == 0) {
+        return;
+    }
+    if (self.isXBingoTransfered) {
+        return;
+    }
+    //字典去重,获取到映射表(不去重则可能错误的设置成两个同样的newKey-oldKey,导致数据转换错误)
+    NSDictionary *mappingDic = [self sortKeyValueWithDictionary:[newOldKeysDic copy]];
+    
+    [mappingDic.allKeys enumerateObjectsUsingBlock:^(NSString*  _Nonnull proprtyName, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSString *newKey = [proprtyName stringByAppendingString:xb_property_suffix];
+        NSString *oldKey = mappingDic[proprtyName];
+        //如果新旧key相同则不需要转移
+        if (![newKey isEqualToString:oldKey]) {
+            // 根据属性名称构建方法
+            SEL sel = [self createSetterMethodWithProprtyName:proprtyName];
+            //根据newKey获取属性类型
+            const char *constChar = [proprtyName UTF8String];
+            objc_property_t property = class_getProperty(self.class, constChar);
+            const char * property_attr = property_getAttributes(property);
+            char type = property_attr[1];
+            //根据类型取出旧值
+            switch (type) {
+                case xb_id:
+                {
+                    NSString *typeStr = [NSString stringWithUTF8String:property_attr];
+                    if ([typeStr containsString:@"NSURL"]) {
+                        NSURL *url = [self.userDefaults URLForKey:oldKey];
+                        ((void(*)(id,SEL,NSURL *))objc_msgSend)((id)self, sel, url);
+                    }else{
+                        id obj = [self.userDefaults objectForKey:oldKey];
+                        ((void(*)(id,SEL,id))objc_msgSend)((id)self, sel, obj);
+                    }
+                }
+                    break;
+                case xb_float:
+                {
+                    float value = [self.userDefaults floatForKey:oldKey];
+                    ((void(*)(id,SEL,float))objc_msgSend)((id)self, sel, value);
+                }
+                    break;
+                case xb_double:
+                {
+                    double value = [self.userDefaults doubleForKey:oldKey];
+                    ((void(*)(id,SEL,double))objc_msgSend)((id)self, sel, value);
+                }
+                    break;
+                case xb_bool:
+                case xb_char:
+                {
+                    BOOL boolV = [self.userDefaults boolForKey:oldKey];
+                    ((void(*)(id,SEL,BOOL))objc_msgSend)((id)self, sel, boolV);
+                }
+                    break;
+                case xb_int:
+                {
+                    NSInteger value = [self.userDefaults integerForKey:oldKey];
+                    ((void(*)(id,SEL,NSInteger))objc_msgSend)((id)self, sel, value);
+                }
+                    break;
+                case xb_short:
+                case xb_long:
+                case xb_unsigned_long:
+                case xb_longlong:
+                case xb_unsigned_longlong:
+                case xb_unsigned_char:
+                case xb_unsigned_short:
+                case xb_unsigned_int:
+                {
+                    NSNumber *number = [self.userDefaults objectForKey:oldKey];
+                    ((void(*)(id,SEL,long long))objc_msgSend)((id)self, sel, [number longLongValue]);
+                }
+                    break;
+                default:
+                    [[NSException exceptionWithName:@"XBUserDefaults exception" reason:@"transferToXBWithNewOldKeysDic: method exception(property type isn`t supported)" userInfo:nil] raise];
+                    break;
+            }
+            // 移除旧值
+            [self.userDefaults removeObjectForKey:oldKey];
+        }
+    }];
+    self.isXBingoTransfered = YES;
+}
+
+-(SEL)createSetterMethodWithProprtyName:(NSString *)proprtyName{
+    NSMutableString *key = [proprtyName mutableCopy];
+    NSString *uppercaseString = [[key substringToIndex:1] uppercaseString];
+    [key replaceCharactersInRange:NSMakeRange(0, 1) withString:uppercaseString];
+    NSString *methodName = [@"set" stringByAppendingString:key];
+    methodName = [methodName stringByAppendingString:@":"];
+    return NSSelectorFromString(methodName);
+}
+
+-(NSDictionary *)sortKeyValueWithDictionary:(NSDictionary *)orDic{
+    NSArray *keyList = orDic.allKeys;
+    NSSet *set = [NSSet setWithArray:keyList];
+    NSArray *sortList = [set allObjects];
+    NSMutableDictionary *needDic = [NSMutableDictionary new];
+    [sortList enumerateObjectsUsingBlock:^(NSString*  _Nonnull key, NSUInteger idx, BOOL * _Nonnull stop) {
+        [needDic setObject:orDic[key] forKey:key];
+    }];
+    return [needDic copy];
 }
 
 @end

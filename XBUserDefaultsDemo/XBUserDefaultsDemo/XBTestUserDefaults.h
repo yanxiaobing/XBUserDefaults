@@ -15,6 +15,8 @@
 @property (nonatomic ,assign) int intAge;
 @property (nonatomic ,strong) NSDate *date;
 
+@property (nonatomic ,assign) BOOL testBool;
+
 +(instancetype)sharedInstance;
 
 @end

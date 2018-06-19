@@ -10,7 +10,7 @@
 
 @implementation XBTestUserDefaults
 
-@dynamic name,age,intAge,date;
+@dynamic name,age,intAge,date,testBool;
 
 static XBTestUserDefaults* _instance = nil;
 
