@@ -19,10 +19,11 @@ enum XBTypeEncodings {
     xb_unsigned_long        = 'L',
     xb_longlong             = 'q',
     xb_unsigned_longlong    = 'Q',
+    xb_unsigned_char        = 'C',
     
     xb_char                 = 'c',
-    xb_unsigned_char        = 'C',
     xb_bool                 = 'B',
+    
     xb_float                = 'f',
     xb_double               = 'd',
     xb_id                   = '@'
@@ -91,7 +92,7 @@ static NSString *const xb_property_suffix = @"_xb_userDefaults_key";
                 class_addMethod(self, sel, (IMP)autoLongLongTypeSetter, types);
                 break;
             default:
-                [[NSException exceptionWithName:@"XBUserDefaults exception" reason:@"setter method exception(property type isn`t supported)" userInfo:nil] raise];
+                [NSException raise:NSInternalInconsistencyException format:@"Unsupported type of property \"%@\" in class %@", selName, NSStringFromClass(self)];
                 break;
         }
     }else{
@@ -130,7 +131,7 @@ static NSString *const xb_property_suffix = @"_xb_userDefaults_key";
                 class_addMethod(self, sel, (IMP)autoLongLongTypeGetter, types);
                 break;
             default:
-                [[NSException exceptionWithName:@"XBUserDefaults exception" reason:@"getter method exception (property type isn`t supported)" userInfo:nil] raise];
+                [NSException raise:NSInternalInconsistencyException format:@"Unsupported type of property \"%@\" in class %@", selName, NSStringFromClass(self)];
                 break;
         }
     }
@@ -179,7 +180,7 @@ static int autoIntegerTypeGetter(id self,SEL _cmd){
     return [typedSelf.userDefaults integerForKey:key];
 }
 
-// integer
+// longlong
 static void autoLongLongTypeSetter(id self,SEL _cmd ,long long value){
     XBUserDefaults *typedSelf = (XBUserDefaults *)self;
     NSString *key = getKeyWithSelector(_cmd, YES);
@@ -344,7 +345,7 @@ static id autoIdTypeGetter(id self,SEL _cmd){
                 }
                     break;
                 default:
-                    [[NSException exceptionWithName:@"XBUserDefaults exception" reason:@"transferToXBWithNewOldKeysDic: method exception(property type isn`t supported)" userInfo:nil] raise];
+                    [NSException raise:NSInternalInconsistencyException format:@"Transfer to XBUserdefaults Unsupported type of property \"%@\" in class %@", proprtyName, self];
                     break;
             }
             // 移除旧值
