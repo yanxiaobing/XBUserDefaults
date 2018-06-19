@@ -105,6 +105,14 @@ NSLog(@"name:%@",[XBTestUserDefaults sharedInstance].name);
 - 数据迁移最好放在app升级的逻辑中做。
 - 数据迁移不需要自己写逻辑控制只执行一次。作者已经帮你做好了。
 
+## 特别说明
+在某QQ群推广的时候，经网友提醒，很早以前已经有一个这样的轮子了，经过比较，人家的轮子更好更强大。不过数据迁移这块支持的不是很好。
+
+既然已经发布了，我就留着自己用了。
+
+大家可以参考下，再自行选择。[GVUserDefaults](https://github.com/gangverk/GVUserDefaults)
+
+
 
 ## License
 
