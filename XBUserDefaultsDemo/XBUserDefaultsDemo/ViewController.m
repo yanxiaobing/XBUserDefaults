@@ -17,6 +17,15 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    // 测试升级转移
+    [self testTransfer];
+    
+    // 测试读写速度
+    [self testIOSpeed];
+}
+
+-(void)testTransfer{
     [[NSUserDefaults standardUserDefaults] setObject:@"我不是小bingbing" forKey:@"test_name"];
     [[NSUserDefaults standardUserDefaults] setInteger:1000 forKey:@"test_age"];
     [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"test_date"];
@@ -30,19 +39,18 @@
     NSLog(@"name:%@",[XBTestUserDefaults sharedInstance].name);
     NSLog(@"age:%ld",(long)[XBTestUserDefaults sharedInstance].age);
     NSLog(@"date:%@",[XBTestUserDefaults sharedInstance].date);
-    [XBTestUserDefaults sharedInstance].testBool = YES;
-    
+}
+
+-(void)testIOSpeed{
     NSDate *date = [NSDate date];
     for (int i = 0; i<100000; i++) {
         [[NSUserDefaults standardUserDefaults] setObject:[NSString stringWithFormat:@"我不是小冰冰%d",i] forKey:@"test_name"];
-//        NSString *str = [[NSUserDefaults standardUserDefaults] objectForKey:@"test_name"];
     }
     NSLog(@"直接使用：%f",[NSDate date].timeIntervalSince1970 - date.timeIntervalSince1970);
     
     NSDate *date2 = [NSDate date];
     for (int i = 0; i<100000; i++) {
-    [XBTestUserDefaults sharedInstance].name = [NSString stringWithFormat:@"我不是小冰冰%d",i];
-//        NSString *str = [XBTestUserDefaults sharedInstance].name;
+        [XBTestUserDefaults sharedInstance].name = [NSString stringWithFormat:@"我不是小冰冰%d",i];
     }
     NSLog(@"间接使用：%f",[NSDate date].timeIntervalSince1970 - date2.timeIntervalSince1970);
 }
